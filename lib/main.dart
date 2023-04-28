@@ -30,6 +30,8 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   final List<String> _images = <String>[];
   final String? clientID = dotenv.env['API_KEY'];
+  final TextEditingController _searchImageController = TextEditingController();
+  String searchTerm = 'travel';
 
   Future<void> _getImages({String? search}) async {
     final String query = search ?? 'travel';
@@ -64,20 +66,50 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: const Text('Image Searcher App'),
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: _images.length,
-        itemBuilder: (BuildContext context, int index) {
-          return Padding(
-            padding: EdgeInsets.only(bottom: index == _images.length - 1 ? 0 : 16),
-            child: Image.network(
-              _images[index],
-              height: 0.4 * MediaQuery.of(context).size.height,
-              width: 0.2 * MediaQuery.of(context).size.width,
-              fit: BoxFit.fitHeight,
-            ),
-          );
-        },
+      body: Column(
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Expanded(
+                  child: TextField(
+                      controller: _searchImageController,
+                      decoration: const InputDecoration(
+                        label: Text('Input image theme'),
+                        prefixIcon: Icon(Icons.search),
+                        prefixIconColor: Colors.lightBlue,
+                      ))),
+              TextButton(
+                  onPressed: () {
+                    searchTerm = _searchImageController.text;
+                    searchTerm.isEmpty ? 'random' : searchTerm;
+                    _getImages(search: searchTerm);
+                  },
+                  style: TextButton.styleFrom(backgroundColor: Colors.lightBlue, foregroundColor: Colors.white),
+                  child: const Text('Search'))
+            ],
+          ),
+          const SizedBox(
+            height: 10,
+          ),
+          Expanded(
+            child: _images.isEmpty
+                ? const Center(
+                    child: Text(
+                      'No Images Found',
+                      style: TextStyle(fontSize: 50),
+                    ),
+                  )
+                : GridView.builder(
+                    itemCount: _images.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      return GridTile(child: Image.network(_images[index]));
+                    },
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                    ),
+                  ),
+          )
+        ],
       ),
     );
   }
